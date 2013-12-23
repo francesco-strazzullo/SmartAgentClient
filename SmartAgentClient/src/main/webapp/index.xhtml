@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+</h:head>
+<h:body>
+	<h1>SmartAgentClient</h1>
+
+	<script>
+		
+		function listAll(){
+			$.ajax({
+				url : "http://localhost:8088/listAll/",
+				crossDomain : true,
+				dataType : "jsonp",
+				timeout : 1000
+			}).done(function(data) {
+				onListLoad([{name:'list', value:JSON.stringify(data)}]);
+			});
+		}
+	
+		function get(path){
+			alert(path);
+			$.ajax({
+				url : "http://localhost:8088/getDocument/?filename="+path,
+				crossDomain : true,
+				dataType : "jsonp",
+				timeout : 1000
+			}).done(function(data) {
+				onGet([{name:'content', value:JSON.stringify(data)}]);
+			});
+		}
+	
+		jQuery(document).ready(listAll());
+	</script>
+
+	<h:form id="form">
+	
+		<p:remoteCommand 
+			name="onListLoad"
+			update="@form"
+			action="#{smartAgentBean.onListLoad}"/>
+			
+		<p:remoteCommand 
+			name="onGet"
+			update="@form"
+			action="#{smartAgentBean.onGet}"/>
+	
+		<p:dataTable value="#{smartAgentBean.paths}" var="path">
+			<p:column>
+				<p:commandButton 
+					type="button"
+					onclick="get('#{smartAgentBean.encodeParameter(path)}')"
+					icon="ui-icon-pencil"/>
+			</p:column>
+			<p:column headerText="Path">
+				<h:outputText value="#{path}"/>
+			</p:column>
+		</p:dataTable>
+		
+		<p:dialog widgetVar="dialog" modal="true">
+			<p:editor value="#{smartAgentBean.currentContent}"/>
+		</p:dialog>
+	</h:form>
+
+</h:body>
+</html>
