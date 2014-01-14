@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" 
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui">
+<h:head>
+	<title>SmartAgent</title>
+</h:head>
+<h:body>
+	<h1>SmartAgent: The Client</h1>
+
+	<script>
+
+		function listAll() {
+			$.ajax({
+				url : "http://localhost:8088/listAll/",
+				crossDomain : true,
+				dataType : "jsonp",
+				timeout : 1000
+			}).done(function(data) {
+				onListAll([ {
+					name : 'list',
+					value : JSON.stringify(data)
+				} ]);
+			});
+		}
+
+		jQuery(document).ready(listAll());
+	</script>
+
+	<h:form id="form">
+
+		<p:remoteCommand name="onListAll" update="opnData"
+			action="#{smartAgentBean.onListLoad}" />
+
+	
+		<p:outputPanel id="opnData">
+			<p:dataTable value="#{smartAgentBean.paths}" var="path">
+				<p:column headerText="Path">
+					<h:outputText value="#{path}" />
+				</p:column>
+			</p:dataTable>
+		</p:outputPanel>
+		
+	</h:form>
+
+</h:body>
+</html>

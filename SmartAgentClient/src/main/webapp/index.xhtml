@@ -6,66 +6,112 @@
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:ui="http://java.sun.com/jsf/facelets"
 	xmlns:p="http://primefaces.org/ui">
-
 <h:head>
+	<title>SmartAgent</title>
 </h:head>
 <h:body>
-	<h1>SmartAgentClient</h1>
+	<h1>SmartAgent: The Client</h1>
 
 	<script>
-		
-		function listAll(){
+
+		function listAll() {
 			$.ajax({
 				url : "http://localhost:8088/listAll/",
 				crossDomain : true,
 				dataType : "jsonp",
 				timeout : 1000
 			}).done(function(data) {
-				onListLoad([{name:'list', value:JSON.stringify(data)}]);
+				onListAll([ {
+					name : 'list',
+					value : JSON.stringify(data)
+				} ]);
 			});
 		}
-	
-		function get(path){
-			alert(path);
+
+		function get(path) {
 			$.ajax({
-				url : "http://localhost:8088/getDocument/?filename="+path,
+				url : "http://localhost:8088/getDocument/?filename=" + path,
 				crossDomain : true,
 				dataType : "jsonp",
 				timeout : 1000
 			}).done(function(data) {
-				onGet([{name:'content', value:JSON.stringify(data)}]);
+				onGet([ {
+					name : 'content',
+					value : JSON.stringify(data)
+				}, {
+					name : 'path',
+					value : path
+				} ]);
 			});
 		}
-	
+
+		function save(path, content) {
+			$.ajax({
+				url : "http://localhost:8088/saveDocument/",
+				type : "POST",
+				data : "fileName=" + path + "&amp;content=" + content,
+				crossDomain : true,
+				timeout : 1000
+			}).done(function(data) {
+				listAll();
+				dialog.hide();
+			});
+		}
+		
+		function deleteFile(path){
+			$.ajax({
+				url : "http://localhost:8088/deleteDocument/",
+				type : "POST",
+				data : "fileName=" + path,
+				crossDomain : true,
+				timeout : 1000
+			}).done(function(data) {
+				listAll();
+			});
+		}
+		
+
 		jQuery(document).ready(listAll());
 	</script>
 
 	<h:form id="form">
-	
-		<p:remoteCommand 
-			name="onListLoad"
-			update="@form"
-			action="#{smartAgentBean.onListLoad}"/>
+
+		<p:remoteCommand name="onListAll" update="opnData"
+			action="#{smartAgentBean.onListLoad}" />
+
+		<p:remoteCommand name="onGet" oncomplete="dialog.show();"
+			update="opnEditor" action="#{smartAgentBean.onGet}" />
+
+		<p:commandButton 
+			action="#{smartAgentBean.create}"
+			oncomplete="dialog.show();" 
+			update="opnEditor"
+			icon="ui-icon-circle-plus" />
 			
-		<p:remoteCommand 
-			name="onGet"
-			update="@form"
-			action="#{smartAgentBean.onGet}"/>
-	
-		<p:dataTable value="#{smartAgentBean.paths}" var="path">
-			<p:column>
-				<p:commandButton 
-					type="button"
-					onclick="get('#{smartAgentBean.encodeParameter(path)}')"
-					icon="ui-icon-pencil"/>
-			</p:column>
-			<p:column headerText="Path">
-				<h:outputText value="#{path}"/>
-			</p:column>
-		</p:dataTable>
-		
+		<p:outputPanel id="opnData">
+			<p:dataTable value="#{smartAgentBean.paths}" var="path">
+				<p:column>
+					<p:commandButton type="button"
+						onclick="get('#{smartAgentBean.encodeParameter(path)}')"
+						icon="ui-icon-pencil">
+					</p:commandButton>
+					<p:commandButton type="button"
+						onclick="deleteFile('#{smartAgentBean.encodeParameter(path)}')"
+						icon="ui-icon-trash">
+					</p:commandButton>
+				</p:column>
+				<p:column headerText="Path">
+					<h:outputText value="#{path}" />
+				</p:column>
+			</p:dataTable>
+		</p:outputPanel>
+
 		<p:dialog widgetVar="dialog" modal="true">
-			<p:editor value="#{smartAgentBean.currentContent}"/>
+			<p:outputPanel id="opnEditor">
+				<h:outputText value="File: #{smartAgentBean.currentPath}" />
+				<p:editor value="#{smartAgentBean.currentContent}" />
+			</p:outputPanel>
+			<p:commandButton value="Save" action="#{smartAgentBean.save}" />
 		</p:dialog>
 	</h:form>
 
